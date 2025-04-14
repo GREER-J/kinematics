@@ -14,11 +14,11 @@ def test_get_e2_from_R():
     test_R = np.eye(3)
     actual_e2 = get_e2_axis_from_R(test_R)
     expected_e2 = np.matrix([0, 1, 0]).T
-    assert np.allclose(actual_e2, expected_e2, atol=TOL), f"Expected e1 vector:\n{expected_e2}\nGot:\n{actual_e2}"
+    assert np.allclose(actual_e2, expected_e2, atol=TOL), f"Expected e2 vector:\n{expected_e2}\nGot:\n{actual_e2}"
 
 
 def test_get_e3_from_R():
     test_R = np.eye(3)
     actual_e3 = get_e3_axis_from_R(test_R)
     expected_e3 = np.matrix([0, 0, 1]).T
-    assert np.allclose(actual_e3, expected_e3, atol=TOL), f"Expected e1 vector:\n{expected_e3}\nGot:\n{actual_e3}"
+    assert np.allclose(actual_e3, expected_e3, atol=TOL), f"Expected e3 vector:\n{expected_e3}\nGot:\n{actual_e3}"
