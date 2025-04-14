@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_e1_axis(R: np.ndarray) -> np.ndarray:
+def get_e1_axis_from_R(R: np.ndarray) -> np.ndarray:
     """
     Extracts the e1 unit vector from a 3x3 rotation matrix.
     """
@@ -9,7 +9,7 @@ def get_e1_axis(R: np.ndarray) -> np.ndarray:
     return np.reshape(R[:, 0], (3,1))
 
 
-def get_e2_axis(R: np.ndarray) -> np.ndarray:
+def get_e2_axis_from_R(R: np.ndarray) -> np.ndarray:
     """
     Extracts the e2 unit vector from a 3x3 rotation matrix.
     """
@@ -17,7 +17,7 @@ def get_e2_axis(R: np.ndarray) -> np.ndarray:
     return np.reshape(R[:, 1], (3,1))
 
 
-def get_e3_axis(R: np.ndarray) -> np.ndarray:
+def get_e3_axis_from_R(R: np.ndarray) -> np.ndarray:
     """
     Extracts the e3 unit vector from a 3x3 rotation matrix.
     """
