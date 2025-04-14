@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 
 """
 MATLAB implementation
@@ -19,8 +20,15 @@ S = [ ...
 """
 
 
-def skew(vec: np.ndarray) -> np.ndarray:
+def skew_np(vec: np.ndarray) -> np.ndarray:
     a1 = vec[0, 0]
     a2 = vec[1, 0]
     a3 = vec[2, 0]
     return np.matrix([[0, -a3, a2], [a3, 0, -a1], [-a2, a1, 0]])
+
+
+def skew_sp(vec):
+    a1 = vec[0, 0]
+    a2 = vec[1, 0]
+    a3 = vec[2, 0]
+    return sp.Matrix([[0, -a3, a2], [a3, 0, -a1], [-a2, a1, 0]])
