@@ -40,4 +40,5 @@ def test_get_r_and_R_from_A():
     expected_R = np.eye(3)
     actual_r, actual_R = get_r_and_R_from_A(test_A)
     assert np.allclose(actual_r, expected_r, atol=TOL), f"Expected translation vector:\n{expected_r}\nGot:\n{actual_r}"
+    assert_valid_rotation_matrix(actual_R)
     assert np.allclose(actual_R, expected_R, atol=TOL), f"Expected rotation matrix:\n{expected_R}\nGot:\n{actual_R}"
