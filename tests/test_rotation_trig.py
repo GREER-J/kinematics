@@ -4,8 +4,21 @@ from scipy.linalg import expm
 from src.kinematics_library.base_vec import e1, e2, e3
 from src.kinematics_library.skew import skew_np
 from src.kinematics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig, rpy, euler_from_matrix
+from tests.test_rotation_matrix import assert_valid_rotation_matrix
 
 TOL = 1e-10  # Very tight tolerance
+
+
+def test_Rz_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Rz_trig(0))
+
+
+def test_Ry_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Ry_trig(0))
+
+
+def test_Rx_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Rx_trig(0))
 
 
 def test_rx_trig_vs_expm():
@@ -167,7 +180,7 @@ def test_rpy_yaw_only():
 def test_rpy_combined_rotation():
     phi, theta, psi = np.deg2rad(30), np.deg2rad(45), np.deg2rad(60)
     result = rpy(phi, theta, psi)
-    expected = Rz_trig(phi) @ Ry_trig(theta) @ Rx_trig(psi)
+    expected = Rz_trig(psi) @ Ry_trig(theta) @ Rx_trig(phi)
     assert_matrix_close(result, expected)
 
 
@@ -179,8 +192,11 @@ def test_rpy_commutativity():
 
 
 def test_rpy_inverse_rotations():
-    R = rpy(np.deg2rad(30), np.deg2rad(45), np.deg2rad(60))
-    R_inv = rpy(np.deg2rad(-30), np.deg2rad(-45), np.deg2rad(-60))
+    phi = np.deg2rad(30)
+    theta = np.deg2rad(45)
+    psi = np.deg2rad(60)
+    R = rpy(phi, theta, psi)
+    R_inv = rpy(-phi, -theta, -psi)
     assert_matrix_close(R @ R_inv, identity())
 
 

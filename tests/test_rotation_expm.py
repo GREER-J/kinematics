@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from src.kinematics_library.rotation_expm import Rz, Ry, Rx, rpy
+from tests.test_rotation_matrix import assert_valid_rotation_matrix
 
 
 def identity():
@@ -9,6 +10,10 @@ def identity():
 
 def assert_matrix_close(actual, expected, tol=1e-6):
     np.testing.assert_allclose(actual, expected, rtol=tol, atol=tol)
+
+
+def test_Rz_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Rz(0))
 
 
 def test_Rz_zero_angle():
@@ -47,6 +52,12 @@ def test_Rz_arbitrary_angle():
     ])
     assert_matrix_close(Rz(angle_rad), expected)
 
+# **** ROTATION ALONG Y AXIS **** #
+
+
+def test_RY_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Ry(0))
+
 
 def test_Ry_zero_angle():
     assert_matrix_close(Ry(0), identity())
@@ -83,6 +94,12 @@ def test_Ry_arbitrary_angle():
         [-np.sin(angle_rad), 0, np.cos(angle_rad)]
     ])
     assert_matrix_close(Ry(angle_rad), expected)
+
+# **** ROTATION ALONG X AXIS **** #
+
+
+def test_Rx_gives_valid_rotation_matrix():
+    assert_valid_rotation_matrix(Rx(0))
 
 
 def test_Rx_zero_angle():
@@ -141,7 +158,7 @@ def test_rpy_yaw_only():
 def test_rpy_combined_rotation():
     phi, theta, psi = np.deg2rad(30), np.deg2rad(45), np.deg2rad(60)
     result = rpy(phi, theta, psi)
-    expected = Rz(phi) @ Ry(theta) @ Rx(psi)
+    expected = Rz(psi) @ Ry(theta) @ Rx(phi)
     assert_matrix_close(result, expected)
 
 

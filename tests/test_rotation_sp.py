@@ -3,9 +3,33 @@ import numpy as np
 from numpy.testing import assert_allclose
 from src.kinematics_library.rotation_sp import Rx_sp, Ry_sp, Rz_sp
 from src.kinematics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig
+from tests.test_rotation_matrix import assert_valid_rotation_matrix
+
+TOL = 1e-10  # Very tight tolerance
 
 
-TOL = 1e-10
+def test_Rz_gives_valid_rotation_matrix():
+    gamma = sp.symbols('gamma')
+    angle = 0
+    R_expm_sym = Rz_sp(gamma).evalf(subs={gamma: angle})
+    R_expm_np = np.array(R_expm_sym.tolist(), dtype=np.float64)
+    assert_valid_rotation_matrix(R_expm_np)
+
+
+def test_Ry_gives_valid_rotation_matrix():
+    gamma = sp.symbols('gamma')
+    angle = 0
+    R_expm_sym = Ry_sp(gamma).evalf(subs={gamma: angle})
+    R_expm_np = np.array(R_expm_sym.tolist(), dtype=np.float64)
+    assert_valid_rotation_matrix(R_expm_np)
+
+
+def test_Rx_gives_valid_rotation_matrix():
+    gamma = sp.symbols('gamma')
+    angle = 0
+    R_expm_sym = Rx_sp(gamma).evalf(subs={gamma: angle})
+    R_expm_np = np.array(R_expm_sym.tolist(), dtype=np.float64)
+    assert_valid_rotation_matrix(R_expm_np)
 
 
 def test_rotx_sp_vs_trig():
