@@ -18,5 +18,3 @@ def test_skew():
     exp_skew = np.matrix([[0, -a3, a2], [a3, 0, -a1], [-a2, a1, 0]])
     act_skew = skew(vec)
     assert np.allclose(act_skew, exp_skew)
-
-test_skew()
