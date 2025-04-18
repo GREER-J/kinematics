@@ -47,3 +47,10 @@ def get_e3_axis_from_A(A: np.ndarray) -> np.ndarray:
     """
     assert A.shape == (4, 4), f"Expected a 4x4 matrix, got shape {A.shape}."
     return np.reshape(A[0:3, 2], (3,1))
+
+
+def get_basis_vectors(A: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    e1 = get_e1_axis_from_A(A)
+    e2 = get_e2_axis_from_A(A)
+    e3 = get_e3_axis_from_A(A)
+    return (e1, e2, e3)
