@@ -22,6 +22,18 @@ The assertion of the video is that you could cover a wide area with a reasonable
 - Simulate this to see it work, it's a neat idea but I'd like to see it / do it
 - Find out how what the requirements on the camera's would be (number, resolution .... > cost?) just to see if the idea is workable in practice
 
+### Implementation
+
+- Let's do a quick prototype in 2d
+- Camera's provide bearings only with 1 true target an a random number of extra false bearings
+
+Tracker process:
+1. Calculate intersection points for each direction vector from each combination of returns (cross product)
+2. Start a tracker for each point in inertial with CV
+3. Run a nearest neighbour track
+4. Produce animation
+
+
 ## References
 
 - https://www.youtube.com/watch?v=m-b51C82-UE
