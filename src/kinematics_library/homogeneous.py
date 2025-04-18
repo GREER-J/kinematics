@@ -28,28 +28,28 @@ def transz(z: float) -> np.ndarray:
     ])
 
 
-def rotx(phi: float) -> np.ndarray:
+def rotx(phi_rad: float) -> np.ndarray:
     return np.array([
         [1, 0, 0, 0],
-        [0, np.cos(phi), -np.sin(phi), 0],
-        [0, np.sin(phi),  np.cos(phi), 0],
+        [0, np.cos(phi_rad), -np.sin(phi_rad), 0],
+        [0, np.sin(phi_rad),  np.cos(phi_rad), 0],
         [0, 0, 0, 1]
     ])
 
 
-def roty(theta: float) -> np.ndarray:
+def roty(theta_rad: float) -> np.ndarray:
     return np.array([
-        [ np.cos(theta), 0, np.sin(theta), 0],
+        [ np.cos(theta_rad), 0, np.sin(theta_rad), 0],
         [ 0,             1, 0,             0],
-        [-np.sin(theta), 0, np.cos(theta), 0],
+        [-np.sin(theta_rad), 0, np.cos(theta_rad), 0],
         [ 0,             0, 0,             1]
     ])
 
 
-def rotz(psi: float) -> np.ndarray:
+def rotz(psi_rad: float) -> np.ndarray:
     return np.array([
-        [np.cos(psi), -np.sin(psi), 0, 0],
-        [np.sin(psi),  np.cos(psi), 0, 0],
+        [np.cos(psi_rad), -np.sin(psi_rad), 0, 0],
+        [np.sin(psi_rad),  np.cos(psi_rad), 0, 0],
         [0,            0,           1, 0],
         [0,            0,           0, 1]
     ])
