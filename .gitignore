@@ -1,5 +1,24 @@
-data
-env
-out
+# Python cache files
+__pycache__/
+*.py[cod]
 
-__pycache__
+# Packaging
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# VSCode settings (if you're using it)
+.vscode/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Standard folders
+data
+out
