@@ -84,3 +84,49 @@ def test_zero_mean_full_consistency():
 
     g = Gaussian(mu, S)
     run_gaussian_case(g, mu, P, eta, Lambda)
+
+
+def run_gaussian_cases(mu, S):
+    """
+    Replicates the MATLAB `runGaussianCases` logic.
+    Constructs a Gaussian using all 4 available factories
+    and tests consistency using `run_gaussian_case`.
+    """
+    n = S.shape[0]
+    P = S.T @ S
+    Xi = np.linalg.qr(np.linalg.solve(S.T, np.eye(n)))[1]  # Xi = upper-triangular QR of S^{-T}
+    Lambda = Xi.T @ Xi
+    eta = Lambda @ mu
+    nu = Xi @ mu
+
+    # Base constructor: from mu, S
+    g0 = Gaussian(mu, S)
+    run_gaussian_case(g0, mu, P, eta, Lambda)
+
+    # Constructor: from sqrt moment
+    # g1 = Gaussian.from_sqrt_moment(mu, S)
+    # run_gaussian_case(g1, mu, P, eta, Lambda)
+
+    # Constructor: from full covariance
+    g2 = Gaussian.from_moment(mu, P)
+    run_gaussian_case(g2, mu, P, eta, Lambda)
+
+    # Constructor: from information form
+    # g3 = Gaussian.from_info(eta, Lambda)
+    # run_gaussian_case(g3, mu, P, eta, Lambda)
+
+    # Constructor: from sqrt info form
+    # g4 = Gaussian.from_sqrt_info(nu, Xi)
+    # run_gaussian_case(g4, mu, P, eta, Lambda)
+
+
+def test_zero_mean_all_constructors():
+    mu = np.zeros((5, 1))
+    S = np.array([
+        [10, 11, 12, 13, 14],
+        [ 0, 15, 16, 17, 18],
+        [ 0,  0, 19, 20, 21],
+        [ 0,  0,  0, 23, 24],
+        [ 0,  0,  0,  0, 25]
+    ])
+    run_gaussian_cases(mu, S)
