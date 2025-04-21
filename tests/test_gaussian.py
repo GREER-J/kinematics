@@ -1,5 +1,5 @@
 import numpy as np
-from src.kinematics_library.statistics.guassian import Gaussian
+from src.kinematics_library.guassian import Gaussian
 
 
 def run_gaussian_case(p: Gaussian, mu_expected, P_expected, eta_expected, Lambda_expected):

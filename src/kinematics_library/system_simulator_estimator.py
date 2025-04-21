@@ -3,13 +3,16 @@ from typing import Tuple
 import copy
 import numpy as np
 from src.kinematics_library.system import BaseSystem
+from src.kinematics_library.guassian import Gaussian
 
 
-class SystemSimulator(BaseSystem, ABC):
-    def __init__(self, x0: np.ndarray, time: float = 0.0): #TODO remove arguments!~?
+class SystemSimulatorEstimator(BaseSystem, ABC):
+    def __init__(self):
         super().__init__()
-        self.x_sim = x0
-        self.time = time
+        self.density: Gaussian = None
+        self.x_sim: np.ndarray = None
+        self.run_estimator = True
+        self.time: float
 
     @abstractmethod
     def input(self, t: float) -> np.ndarray:
@@ -32,7 +35,7 @@ class SystemSimulator(BaseSystem, ABC):
         Default dynamics call forwards to dynamicsSim unless overridden.
         """
 
-    def predict(self, time_next: float) -> "SystemSimulator":
+    def predict(self, time_next: float) -> "SystemSimulatorEstimator":
         """
         Simple Euler integration of x_sim forward to time_next.
         """
@@ -43,5 +46,5 @@ class SystemSimulator(BaseSystem, ABC):
         self.time = time_next
         return self
 
-    def copy(self) -> "SystemSimulator":
+    def copy(self) -> "SystemSimulatorEstimator":
         return copy.deepcopy(self)

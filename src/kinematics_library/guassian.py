@@ -95,23 +95,23 @@ class Gaussian:
         Evaluate the log of the Gaussian PDF at one or more input points.
 
         Args:
-            X (np.ndarray): Input points of shape (n,) or (n, m)
-            return_grad (bool): If True, also return the gradient(s)
-            return_hess (bool): If True, also return the Hessian(s)
+            X (np.ndarray): Input of shape (n, m)
+            return_grad (bool): Whether to return ∇ log p
+            return_hess (bool): Whether to return ∇² log p
 
         Returns:
-            logPDF: shape (m,)
-            grad: shape (n, m), optional
-            hess: shape (n, n, m), optional
+            logPDF (np.ndarray): shape (m,)
+            grad (np.ndarray): shape (n, m), optional
+            hess (np.ndarray): shape (n, n, m), optional
         """
         mu = self.mu
         S = self.sqrt_cov
         n = self.dim()
 
-        # Ensure 2D input
+        # Ensure (n, m) shape
         X = np.atleast_2d(X)
         if X.shape[0] != n:
-            if X.shape[1] == n and X.shape[0] != n:
+            if X.shape[1] == n:
                 X = X.T
             else:
                 raise ValueError(f"Expected input shape (n, m), got {X.shape}")
@@ -119,30 +119,26 @@ class Gaussian:
 
         X_mu = X - mu
         logPDF = np.zeros((m,))
-
-        try:
-            ST_inv = np.linalg.inv(S.T)
-        except np.linalg.LinAlgError:
-            raise ValueError("S.T is not invertible")
+        ST_inv = np.linalg.inv(S.T)
 
         for i in range(m):
             w = ST_inv @ X_mu[:, i]
             log_det_term = np.sum(np.log(np.abs(np.diag(S))))
             logPDF[i] = -0.5 * n * np.log(2 * np.pi) - log_det_term - 0.5 * np.dot(w, w)
 
-        result = (logPDF,)
+        results = (logPDF,)
 
         if return_grad:
             Z = np.linalg.solve(S, X_mu)
             grad = -np.linalg.solve(S, Z)  # shape (n, m)
-            result += (grad,)
+            results += (grad,)
 
         if return_hess:
-            Lambda = self.info_mat  # shape (n, n)
-            H = np.repeat(Lambda[:, :, None], m, axis=2) * -1
-            result += (H,)
+            Lambda = self.info_mat  # (n, n)
+            H = -Lambda[:, :, None].repeat(m, axis=2)  # (n, n, m)
+            results += (H,)
 
-        return result if len(result) > 1 else result[0]
+        return results if len(results) > 1 else results[0]
 
     def eval(self, X: np.ndarray) -> np.ndarray:
         """
@@ -159,7 +155,7 @@ class Gaussian:
 
     def affine_transform(
         self,
-        h: Callable[[np.ndarray], Union["Gaussian", Tuple[np.ndarray, np.ndarray]]],
+        h: Callable[[np.ndarray], Union["Gaussian", Tuple[Union[np.ndarray, "Gaussian"], np.ndarray]]],
         noise: "Gaussian" = None
     ) -> "Gaussian":
         """
@@ -168,7 +164,9 @@ class Gaussian:
         Args:
             h: A function h(x) that returns either:
                 - A Gaussian object with mean and sqrt_cov
-                - A tuple (output, J) where output is a mean vector and J is the Jacobian
+                - A tuple (output, J) where output is either:
+                    - a mean vector and Jacobian (y, J)
+                    - a Gaussian and Jacobian (py, J)
             noise: Optional additive Gaussian noise in the output space
 
         Returns:
@@ -180,38 +178,52 @@ class Gaussian:
         result = h(mu)
 
         if isinstance(result, Gaussian):
-            # Function returns a Gaussian directly (with its own model noise)
             if noise is not None:
                 raise ValueError("Noise should not be provided when h() already returns a Gaussian")
-            y_mu = result.mu
-            SR = result.sqrt_cov
+            return result  # Already full Gaussian, return directly
 
         elif isinstance(result, tuple):
-            # Function returns (output, Jacobian)
-            y_mu, J = result
+            y_part, J = result
 
-            y_mu = np.atleast_2d(y_mu)
-            if y_mu.shape[1] != 1:
-                y_mu = y_mu.T
+            if isinstance(y_part, Gaussian):
+                y_mu = y_part.mu
+                S_base = y_part.sqrt_cov
+                SJ_T = J @ S.T
+                parts = [SJ_T, S_base]
+            else:
+                y_mu = np.atleast_2d(y_part)
+                if y_mu.shape[1] != 1:
+                    y_mu = y_mu.T
+                SJ_T = J @ S.T
+                parts = [SJ_T]
+                if noise is not None:
+                    y_mu = y_mu + noise.mu
+                    parts.append(noise.sqrt_cov)
 
-            SJ_T = S @ J.T
-            parts = [SJ_T]
+            # Match column counts before stacking
+            max_cols = max(p.shape[1] for p in parts)
+            padded_parts = [
+                np.pad(p, ((0, 0), (0, max_cols - p.shape[1]))) if p.shape[1] < max_cols else p
+                for p in parts
+            ]
+            stacked = np.vstack(padded_parts)
+            Q, R = np.linalg.qr(stacked, mode="reduced")
+            SR = R.T
 
-            if noise is not None:
-                y_mu = y_mu + noise.mu
-                parts.append(noise.sqrt_cov)
+            # Ensure full (n, n) shape
+            expected_dim = J.shape[0]
+            curr_rows, curr_cols = SR.shape
+            if curr_rows < expected_dim:
+                pad_rows = expected_dim - curr_rows
+                SR = np.pad(SR, ((0, pad_rows), (0, 0)))
+            if curr_cols < expected_dim:
+                pad_cols = expected_dim - curr_cols
+                SR = np.pad(SR, ((0, 0), (0, pad_cols)))
 
-            stacked = np.vstack(parts)
-            SR = np.linalg.qr(stacked, mode="reduced")[1].T  # upper-triangular
+            return self.__class__(y_mu, SR)
 
         else:
-            raise ValueError("Expected h(mu) to return either a Gaussian or (output, Jacobian) tuple")
-
-        # Truncate to output dimensionality
-        SR = SR[:y_mu.shape[0], :]
-
-        return self.__class__(y_mu, SR)
-
+            raise ValueError("Expected h(mu) to return a Gaussian or a (Gaussian or mean, Jacobian) tuple")
 
     def unscented_transform(
         self,
@@ -317,3 +329,46 @@ class Gaussian:
         # Transform circle into ellipse using sqrt covariance
         ellipse = self.sqrt_cov.T @ W + self.mu  # Shape (2, n_samples)
         return ellipse
+
+    def conditional(self, idx_A, idx_B, x_B):
+        """
+        Compute the conditional distribution p(x_A | x_B = xB)
+        from the joint Gaussian.
+
+        Args:
+            idx_A (List[int]): Indices of target variables A
+            idx_B (List[int]): Indices of known variables B
+            x_B (np.ndarray): Observed value of x_B (shape: (len(B), 1))
+
+        Returns:
+            Gaussian: The conditional distribution p(x_A | x_B = xB)
+        """
+        # Step 1: Reorder and decompose S into [S_B, S_A]
+        S = self.sqrt_cov
+
+        S_joint = np.hstack([S[:, idx_B], S[:, idx_A]])  # shape (n, len(B)+len(A))
+        Q, R = np.linalg.qr(S_joint, mode="reduced")
+        SS = np.triu(R)
+
+        nB = len(idx_B)
+        # nA = len(idx_A)  # not strictly needed
+
+        print(f"[CONDITIONAL] mu before: {self.mu.T}")
+        print(f"[CONDITIONAL] xB = {x_B.flatten()}")
+
+        SBB = SS[0:nB, 0:nB]                     # (nB, nB)
+        SBA = SS[0:nB, nB:]                      # (nB, nA)
+        SAA = SS[nB:, nB:]                       # (nA, nA)
+
+        muA = self.mu[idx_A]
+        muB = self.mu[idx_B]
+
+        # Solve: delta = SBB \ (xB - muB)
+        delta = np.linalg.solve(SBB.T, x_B - muB)  # forward solve (triangular)
+        muc = muA + SBA.T @ delta                  # updated mean
+        Sc = SAA                                   # updated sqrt covariance
+
+        print(f"[CONDITIONAL] mu after: {muc.T}")
+        print(f"[CONDITIONAL] sqrt_cov:\n{self.sqrt_cov}")
+
+        return Gaussian(muc, Sc)

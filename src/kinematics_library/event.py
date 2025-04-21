@@ -36,7 +36,7 @@ class BaseEvent(ABC):
 
     @staticmethod
     def get_process_string() -> str:
-        return "Processing event:"
+        return "Processing event:\n"
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} at t={self.time:.3f}>"
