@@ -11,7 +11,7 @@ def test_log_pdf_value():
 
     expected = -6.04857506884207
     actual = g.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-12)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-12)
 
 
 def test_nominal_gradient():
@@ -19,9 +19,8 @@ def test_nominal_gradient():
     mu = np.array([[2], [4], [6]])
     S = np.diag([1, 2, 3])
     p = Gaussian.from_sqrt_moment(mu, S)
-
     l, grad = p.log(x, return_grad=True)
-    grad_fn = Gradient(lambda v: float(p.log(v.reshape(-1, 1))))
+    grad_fn = Gradient(lambda v: float(p.log(v.reshape(-1, 1)).magnitude))
     expected = grad_fn(x.flatten()).reshape(-1, 1)
 
     np.testing.assert_allclose(grad, expected, atol=1e-8)
@@ -33,7 +32,7 @@ def test_nominal_hessian():
     S = np.diag([1, 2, 3])
     p = Gaussian.from_sqrt_moment(mu, S)
     l, grad, hess = p.log(x, return_grad=True, return_hess=True)
-    hess_fn = Hessian(lambda v: float(p.log(v.reshape(-1, 1))))
+    hess_fn = Hessian(lambda v: float(p.log(v.reshape(-1, 1)).magnitude))
     expected = hess_fn(x.flatten())
 
     hess = np.squeeze(hess)  # removes trailing dim (3,3,1) → (3,3)
@@ -52,7 +51,7 @@ def test_multiple_x():
         -10.5485750688421, -18.0485750688421
     ])
     actual = p.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-12)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-12)
 
 
 def test_negative_S():
@@ -72,7 +71,7 @@ def test_underflow():
     z = (x - mu) / S
     expected = np.array([-0.5 * float(z**2)])  # -805.904782547916
     actual = p.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-10)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-10)
 
 
 def test_det_underflow():
@@ -84,7 +83,7 @@ def test_det_underflow():
     p = Gaussian.from_sqrt_moment(mu, S)
     expected = -n * np.log(a) - 0.5 * n * np.log(2 * np.pi)
     actual = p.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-5)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-5)
 
 
 def test_det_overflow():
@@ -96,7 +95,7 @@ def test_det_overflow():
     p = Gaussian.from_sqrt_moment(mu, S)
     expected = -n * np.log(a) - 0.5 * n * np.log(2 * np.pi)
     actual = p.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-5)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-5)
 
 
 def test_covariance_overflow():
@@ -107,7 +106,7 @@ def test_covariance_overflow():
     assert not np.all(np.isfinite(p.cov))
     x = np.zeros((n, 1))
     actual = p.log(x)
-    assert np.isfinite(actual)
+    assert np.isfinite(actual.magnitude)
 
 
 def test_covariance_inverse_edge_case():
@@ -119,4 +118,4 @@ def test_covariance_inverse_edge_case():
     n = p.dim()
     expected = -0.5 - np.log(e) - n/2 * np.log(2 * np.pi)
     actual = p.log(x)
-    np.testing.assert_allclose(actual, expected, atol=1e-5)
+    np.testing.assert_allclose(actual.magnitude, expected, atol=1e-5)

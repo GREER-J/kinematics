@@ -4,6 +4,8 @@ import numpy as np
 from src.kinematics_library.measurement import Measurement
 from src.kinematics_library.system import BaseSystem
 from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian_return import GaussianReturn
+from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 
 
 class MeasurementGaussianLikelihood(Measurement):
@@ -12,14 +14,12 @@ class MeasurementGaussianLikelihood(Measurement):
         self.y = y  # The actual measurement vector
 
     @abstractmethod
-    def predict_density(self, x: np.ndarray, system) -> Tuple["Gaussian", np.ndarray, np.ndarray]:
+    def predict_density(self, x: np.ndarray, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> GaussianReturn:
         """
         Predict the distribution of y given x.
 
         Returns:
-            py: Gaussian object for predicted measurement distribution
-            dhdx: Jacobian matrix (ny × nx)
-            d2hdx2: Hessian tensor (ny × nx × nx)
+            GaussianReturn object
         """
 
     def simulate(self, x, system):
@@ -144,17 +144,25 @@ class MeasurementGaussianLikelihood(Measurement):
 
         return self, system
 
-    def augmented_predict_density(self, x, system, return_gradient=False, return_hessian=False):
-        if return_hessian:
-            py, dhdx, d2hdx2 = self.predict_density(x, system, return_gradient=True, return_hessian=True)
-        elif return_gradient:
-            py, dhdx = self.predict_density(x, system, return_gradient=True)
-            d2hdx2 = np.zeros((py.mu.shape[0], x.shape[0], x.shape[0]))
-        else:
-            py = self.predict_density(x, system)
-            dhdx = np.zeros((py.mu.shape[0], x.shape[0]))
-            d2hdx2 = np.zeros((py.mu.shape[0], x.shape[0], x.shape[0]))
+    def augmented_predict_density(self, x, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> GaussianReturn:
+        if system is None:
+            raise ValueError("System must be provided to access state uncertainty.")
 
+        result = self.predict_density(x=x,
+                                      system=system,
+                                      return_gradient=return_gradient,
+                                      return_hessian=return_hessian)
+
+        if not result.has_gaussian:
+            raise ValueError("Result from h(x) should include a Gaussian")
+
+        if return_gradient and not result.has_grad:
+            raise ValueError("Result from h(x) does not include dhdx")
+
+        if return_hessian and not result.has_hesh:
+            raise ValueError("Result from h(x) does not include d2hdx2")
+
+        py = result.gaussian_magnitude
         ny = py.mu.shape[0]
         nx = x.shape[0]
 
@@ -163,10 +171,23 @@ class MeasurementGaussianLikelihood(Measurement):
         S_aug[:ny, :ny] = py.sqrt_cov  # top-left block is R
         S_aug[ny:, ny:] = system.density.sqrt_cov  # bottom-right = state uncertainty
 
+        # Create dummy Jacobians
+        dhdx = np.zeros((py.mu.shape[0], x.shape[0]))
+        d2hdx2 = np.zeros((py.mu.shape[0], x.shape[0], x.shape[0]))
+
+        if result.has_grad:
+            dhdx = result.grad_magnitude
+
+        if result.has_hesh:
+            d2hdx2 = result.hess_magnitude
 
         mu_aug = np.vstack([py.mu, x])
         J_aug = np.vstack([dhdx, np.eye(nx)])
 
         py_aug = Gaussian(mu_aug, S_aug)
 
-        return py_aug, J_aug
+        rv = GaussianReturn(magnitude=mu_aug,
+                            gaussian_magnitude=py_aug,
+                            grad_magnitude=J_aug,
+                            hess_magnitude=d2hdx2)
+        return rv

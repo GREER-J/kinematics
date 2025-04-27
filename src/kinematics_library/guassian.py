@@ -1,6 +1,9 @@
+from __future__ import annotations
+from typing import Callable, Union, Optional
 import numpy as np
 from scipy.stats import chi2, norm
-from typing import Callable, Union, Tuple
+from src.kinematics_library.gaussian_measurement_function import MeasurementFunctionProtocol
+from src.kinematics_library.gaussian_return import GaussianReturn
 
 
 class Gaussian:
@@ -90,7 +93,7 @@ class Gaussian:
         W = np.random.randn(n, m)
         return self.sqrt_cov.T @ W + self.mu  # Equivalent to S' * W + mu
 
-    def log(self, X: np.ndarray, return_grad: bool = False, return_hess: bool = False):
+    def log(self, X: np.ndarray, return_grad: bool = False, return_hess: bool = False) -> GaussianReturn:
         """
         Evaluate the log of the Gaussian PDF at one or more input points.
 
@@ -126,19 +129,19 @@ class Gaussian:
             log_det_term = np.sum(np.log(np.abs(np.diag(S))))
             logPDF[i] = -0.5 * n * np.log(2 * np.pi) - log_det_term - 0.5 * np.dot(w, w)
 
-        results = (logPDF,)
+        results = GaussianReturn(magnitude=logPDF)  # results = (logPDF,)
 
         if return_grad:
             Z = np.linalg.solve(S, X_mu)
             grad = -np.linalg.solve(S, Z)  # shape (n, m)
-            results += (grad,)
+            results.grad_magnitude = grad  #results += (grad,)
 
         if return_hess:
             Lambda = self.info_mat  # (n, n)
             H = -Lambda[:, :, None].repeat(m, axis=2)  # (n, n, m)
-            results += (H,)
+            results.hess_magnitude = H  # results += (H,)
 
-        return results if len(results) > 1 else results[0]
+        return results
 
     def eval(self, X: np.ndarray) -> np.ndarray:
         """
@@ -155,75 +158,88 @@ class Gaussian:
 
     def affine_transform(
         self,
-        h: Callable[[np.ndarray], Union["Gaussian", Tuple[Union[np.ndarray, "Gaussian"], np.ndarray]]],
-        noise: "Gaussian" = None
-    ) -> "Gaussian":
+        h: MeasurementFunctionProtocol,
+        noise: Optional[Gaussian] = None
+    ) -> Gaussian:
         """
         Apply an affine (linearized) transformation to the Gaussian using Jacobian-based uncertainty propagation.
 
         Args:
-            h: A function h(x) that returns either:
-                - A Gaussian object with mean and sqrt_cov
-                - A tuple (output, J) where output is either:
-                    - a mean vector and Jacobian (y, J)
-                    - a Gaussian and Jacobian (py, J)
-            noise: Optional additive Gaussian noise in the output space
+            h: A function h(x) that returns a GaussianReturn object.
+            noise: Optional additive Gaussian noise in the output space.
 
         Returns:
-            Gaussian: Transformed approximation
+            Gaussian: Transformed approximation.
         """
         mu = self.mu
         S = self.sqrt_cov
 
-        result = h(mu)
+        result: GaussianReturn = h(x=mu, return_grad=True)
 
-        if isinstance(result, Gaussian):
+        # --- CASE 1: Full Gaussian provided
+        if result.has_gaussian:
             if noise is not None:
                 raise ValueError("Noise should not be provided when h() already returns a Gaussian")
-            return result  # Already full Gaussian, return directly
+            return result.gaussian_magnitude
 
-        elif isinstance(result, tuple):
-            y_part, J = result
+        # --- CASE 2: Linearized Transform
+        if not result.has_grad:
+            raise ValueError("Affine transform requires gradient information (Jacobian) when no Gaussian is provided")
 
-            if isinstance(y_part, Gaussian):
-                y_mu = y_part.mu
-                S_base = y_part.sqrt_cov
-                SJ_T = J @ S.T
-                parts = [SJ_T, S_base]
-            else:
-                y_mu = np.atleast_2d(y_part)
-                if y_mu.shape[1] != 1:
-                    y_mu = y_mu.T
-                SJ_T = J @ S.T
-                parts = [SJ_T]
-                if noise is not None:
-                    y_mu = y_mu + noise.mu
-                    parts.append(noise.sqrt_cov)
+        y_part = result.magnitude
+        J = result.grad_magnitude
 
-            # Match column counts before stacking
-            max_cols = max(p.shape[1] for p in parts)
-            padded_parts = [
-                np.pad(p, ((0, 0), (0, max_cols - p.shape[1]))) if p.shape[1] < max_cols else p
-                for p in parts
-            ]
-            stacked = np.vstack(padded_parts)
-            Q, R = np.linalg.qr(stacked, mode="reduced")
-            SR = R.T
+        return self.compute_affine_transform_sqrt(noise, S, y_part, J)
 
-            # Ensure full (n, n) shape
-            expected_dim = J.shape[0]
-            curr_rows, curr_cols = SR.shape
-            if curr_rows < expected_dim:
-                pad_rows = expected_dim - curr_rows
-                SR = np.pad(SR, ((0, pad_rows), (0, 0)))
-            if curr_cols < expected_dim:
-                pad_cols = expected_dim - curr_cols
-                SR = np.pad(SR, ((0, 0), (0, pad_cols)))
+    def compute_affine_transform_sqrt(self, noise, S, y_part, J) -> Gaussian:
+        if y_part.ndim == 1:
+            y_part = y_part[:, None]
 
-            return self.__class__(y_mu, SR)
+        # Propagate uncertainty
+        #SJ_T = J @ S.T
+        SJ_T = S @ J.T
+        parts = [SJ_T]
 
-        else:
-            raise ValueError("Expected h(mu) to return a Gaussian or a (Gaussian or mean, Jacobian) tuple")
+        if noise is not None:
+            parts.append(noise.sqrt_cov)
+
+        # Stack all uncertainty contributions vertically
+        max_cols = max(p.shape[1] for p in parts)
+        padded_parts = [
+            np.pad(p, ((0, 0), (0, max_cols - p.shape[1]))) if p.shape[1] < max_cols else p
+            for p in parts
+        ]
+        stacked = np.vstack(padded_parts)
+
+        # QR decomposition to obtain square-root of covariance
+        _, R = np.linalg.qr(stacked, mode="reduced")
+        SR = R.T
+
+        # Ensure full (n, n) shape
+        expected_dim = J.shape[0]
+        curr_rows, curr_cols = SR.shape
+        if curr_rows < expected_dim:
+            pad_rows = expected_dim - curr_rows
+            SR = np.pad(SR, ((0, pad_rows), (0, 0)))
+        if curr_cols < expected_dim:
+            pad_cols = expected_dim - curr_cols
+            SR = np.pad(SR, ((0, 0), (0, pad_cols)))
+
+        return self.__class__(y_part, SR)
+
+    def compute_affine_transform_moment(self, mux, H, Px, R) -> Gaussian:
+        """
+        Full moment calculation for [h(x); x].
+        """
+        muy = H @ mux          # Predicted measurement mean (measurement space)
+        Py = H @ Px @ H.T + R   # Measurement covariance
+        Pyx = H @ Px            # Cross-covariance (between y and x)
+        mu_aug = np.vstack([muy, mux])  # Full augmented mean
+        P_aug = np.block([
+            [Py, Pyx],
+            [Pyx.T, Px]
+        ])  # Full augmented covariance
+        return self.__class__.from_moment(mu_aug, P_aug)
 
     def unscented_transform(
         self,
