@@ -2,7 +2,7 @@ import numpy as np
 from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
 from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 from src.kinematics_library.gaussian_return import GaussianReturn
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.guassian import Gaussian, AffineMode
 
 
 class DummySystem(SystemSimulatorEstimator):
@@ -24,41 +24,25 @@ class TestMeasurement(MeasurementGaussianLikelihood):
         super().__init__(y)
         self.H = np.array([[2.0, 3.0]])
         self.R = np.array([[0.5]])
+        system: SystemSimulatorEstimator
 
-    def predict_density(self, x, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> GaussianReturn:
+    def predict_density(self, x, return_grad=False, return_hessian=False) -> GaussianReturn:
         mu = self.H @ x
         S = np.linalg.cholesky(self.R).T
 
         rv = GaussianReturn(magnitude=mu, gaussian_magnitude=Gaussian(mu, S))
 
-        if return_gradient:
+        if return_grad:
             rv.grad_magnitude = self.H.copy()
 
         return rv
 
     def get_pyx(self, x, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> Gaussian:
-        aug_rv = self.augmented_predict_density(x=x,
-                                                system=system,
-                                                return_gradient=return_gradient,
-                                                return_hessian=return_hessian)
 
-        augmented:Gaussian = aug_rv.gaussian_magnitude
+        noise_gaussian = Gaussian(np.zeros((3,1)), np.diag([np.sqrt(0.5), 0, 0]))
+        pyx = system.density.affine_transform(h=self.predict_density, noise=noise_gaussian, mode=AffineMode.MOMENT)
 
-        mux = x
-        Px = system.density.cov
-
-        Ja = aug_rv.grad_magnitude
-
-        muy_aug = Ja @ mux
-
-        R_aug = np.zeros((3,3))
-        R_aug[0,0] = self.R  # Only measurement noise affects h(x)
-
-        P_aug = Ja @ Px @ Ja.T + R_aug
-
-        final = Gaussian.from_moment(muy_aug, P_aug)
-
-        return final
+        return pyx
 
 
 def test_get_pyx_with_affine_transform():

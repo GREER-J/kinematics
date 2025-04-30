@@ -1,34 +1,16 @@
 import numpy as np
-from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
+from tests.helpers.dummy_scenario import DummySystem, TestMeasurement
 from src.kinematics_library.gaussian_return import GaussianReturn
 from src.kinematics_library.guassian import Gaussian
-
-
-class TestMeasurement(MeasurementGaussianLikelihood):
-    def __init__(self, y: np.ndarray):
-        super().__init__(y)
-        self.H = np.array([[1.0, 3.0]])
-        self.R = np.array([[0.5]])
-
-    def predict_density(self, x, system, return_gradient=False, return_hessian=False) -> GaussianReturn:
-        mu = self.H @ x
-        S = np.linalg.cholesky(self.R).T
-
-        rv = GaussianReturn(magnitude=mu, gaussian_magnitude=Gaussian(mu, S))
-
-        if return_gradient:
-            rv.grad_magnitude = self.H
-
-        return rv
 
 
 def test_gaussian_measurement():
     mux = np.array([
         [1.0],
-        [2.0]
-    ])
+        [2.0]])
 
-    measurement = TestMeasurement(np.zeros((1, 1)))
+    sys = DummySystem(state=Gaussian(mux, np.eye(2)))
+    measurement = TestMeasurement(0.0, np.ndarray([1]), system=sys)
 
     rv = measurement.predict_density(x=mux, system=None, return_gradient=True)
     assert isinstance(rv, GaussianReturn), "h function should return a GaussianReturn object"

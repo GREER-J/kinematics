@@ -4,9 +4,16 @@ import numpy as np
 from scipy.stats import chi2, norm
 from src.kinematics_library.gaussian_measurement_function import MeasurementFunctionProtocol
 from src.kinematics_library.gaussian_return import GaussianReturn
+from enum import Enum
+
+
+class AffineMode(Enum):
+    MOMENT = 'moment'
+    SQRT = 'sqrt'
 
 
 class Gaussian:
+    """This is our core math representation of uncertainty."""
     def __init__(self, mu: np.ndarray, S: np.ndarray):
         self._mu = mu.reshape(-1, 1)
         self._S = S
@@ -159,7 +166,8 @@ class Gaussian:
     def affine_transform(
         self,
         h: MeasurementFunctionProtocol,
-        noise: Optional[Gaussian] = None
+        noise: Optional[Gaussian] = None,
+        mode=AffineMode.SQRT
     ) -> Gaussian:
         """
         Apply an affine (linearized) transformation to the Gaussian using Jacobian-based uncertainty propagation.
@@ -170,10 +178,10 @@ class Gaussian:
 
         Returns:
             Gaussian: Transformed approximation.
-        """
+        """        
         mu = self.mu
-        S = self.sqrt_cov
 
+        # 1. Pull out required information
         result: GaussianReturn = h(x=mu, return_grad=True)
 
         # --- CASE 1: Full Gaussian provided
@@ -186,17 +194,37 @@ class Gaussian:
         if not result.has_grad:
             raise ValueError("Affine transform requires gradient information (Jacobian) when no Gaussian is provided")
 
-        y_part = result.magnitude
-        J = result.grad_magnitude
+        # 2. Call out to sub func for Gaussian
+        if mode == AffineMode.MOMENT:
+            J = result.grad_magnitude
+            Px = self.cov
+            Py = self.compute_affine_transform_moment(J, Px, noise)
+            return self.__class__.from_moment(result.magnitude, Py)
+        if mode == AffineMode.SQRT:
+            y_part = result.magnitude
+            S = self.sqrt_cov
+            J = result.grad_magnitude
+            return self.compute_affine_transform_sqrt(noise, S, y_part, J)
 
-        return self.compute_affine_transform_sqrt(noise, S, y_part, J)
+        raise ValueError(f"Incorrect mode, received: {mode}")
+
+    def compute_affine_transform_moment(self, J: np.ndarray, Px: np.ndarray, noise: Gaussian) -> Gaussian:
+        """
+        Full moment calculation for [h(x); x].
+        """
+        R = noise.cov if noise is not None else np.zeros((J.shape[0], J.shape[0]))
+
+        assert Px.shape[0] == J.shape[1], "Incompatible dimensions for affine transform"
+        P_aug = J @ Px @ J.T + R
+
+        return P_aug
 
     def compute_affine_transform_sqrt(self, noise, S, y_part, J) -> Gaussian:
         if y_part.ndim == 1:
             y_part = y_part[:, None]
 
         # Propagate uncertainty
-        #SJ_T = J @ S.T
+        # SJ_T = J @ S.T
         SJ_T = S @ J.T
         parts = [SJ_T]
 
@@ -226,20 +254,6 @@ class Gaussian:
             SR = np.pad(SR, ((0, 0), (0, pad_cols)))
 
         return self.__class__(y_part, SR)
-
-    def compute_affine_transform_moment(self, mux, H, Px, R) -> Gaussian:
-        """
-        Full moment calculation for [h(x); x].
-        """
-        muy = H @ mux          # Predicted measurement mean (measurement space)
-        Py = H @ Px @ H.T + R   # Measurement covariance
-        Pyx = H @ Px            # Cross-covariance (between y and x)
-        mu_aug = np.vstack([muy, mux])  # Full augmented mean
-        P_aug = np.block([
-            [Py, Pyx],
-            [Pyx.T, Px]
-        ])  # Full augmented covariance
-        return self.__class__.from_moment(mu_aug, P_aug)
 
     def unscented_transform(
         self,

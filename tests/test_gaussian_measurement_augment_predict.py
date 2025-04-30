@@ -20,7 +20,6 @@ class DummySystem(SystemSimulatorEstimator):
 
 
 class TestMeasurement(MeasurementGaussianLikelihood):
-    def __init__(self, y: np.ndarray):
         super().__init__(y)
         self.H = np.array([[2.0, 3.0]])
         self.R = np.array([[0.5]])

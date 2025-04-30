@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Tuple
@@ -11,7 +12,7 @@ class BaseEvent(ABC):
     verbosity: int = 1
     system: Optional[BaseSystem] = None
 
-    def process(self, system: BaseSystem) -> Tuple["BaseEvent", BaseSystem]:
+    def process(self, system: BaseSystem) -> Tuple[BaseEvent, BaseSystem]:
         if self.verbosity > 0:
             print(f"[t={self.time:07.3f}s] {self.get_process_string()}", end="")
 
@@ -46,10 +47,21 @@ class BaseEvent(ABC):
 
 
 @dataclass
-class EvaluateStateEvent(BaseEvent):
+class StateUpdateEvent(BaseEvent):
     def update(self, system: BaseSystem) -> None:
-        pass
+
+        system.time = self.time
 
     @staticmethod
     def get_process_string() -> str:
-        return "Evaluating state"
+        return "Updating state"
+
+
+@dataclass
+class LogEvent(BaseEvent):
+    def update(self, system: BaseSystem) -> None:
+        print(f" [LOG] {system.state}", end='')
+
+    @staticmethod
+    def get_process_string() -> str:
+        return "Logging state"

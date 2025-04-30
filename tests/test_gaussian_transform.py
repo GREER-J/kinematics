@@ -101,3 +101,28 @@ def test_gaussian_transform_affine_square_x1():
         [0.0, 0.01]
     ])
     np.testing.assert_allclose(py.cov, Py_expected, atol=1e-10)
+
+
+def test_gaussian_affine_from_moment():
+    mux = np.array([[1.0], [2.0]])
+    Px = np.diag([1.0, 4.0])
+
+    Ja = np.array([[2.0, 3.0],
+                  [1.0, 0.0],
+                  [0.0, 1.0]])
+
+    R = Gaussian(np.zeros((3,1)), np.diag([np.sqrt(0.5), 0, 0]))
+    muy_aug = Ja @ mux
+    px = Gaussian.from_moment(mux, Px)
+
+    Py = px.compute_affine_transform_moment(Ja, Px, R)
+    pyx = Gaussian.from_moment(muy_aug, Py)
+    muy_expected = np.array([[8.0], [1.0], [2.0]])
+    np.testing.assert_allclose(pyx.mu, muy_expected, atol=1e-10)
+
+    cov_expected = np.array([[40.5, 2.0, 12.0],
+                             [2.0, 1.0, 0.0],
+                             [12.0, 0.0, 4.0]
+                             ])
+    assert pyx.cov.shape == (3, 3), f"Expected covariance shape (3,3), got {pyx.cov.shape}"
+    np.testing.assert_allclose(pyx.cov, cov_expected, atol=1e-10)

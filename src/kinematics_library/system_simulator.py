@@ -1,15 +1,15 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple
 import copy
 import numpy as np
 from src.kinematics_library.system import BaseSystem
+from src.kinematics_library.state import State
 
 
 class SystemSimulator(BaseSystem, ABC):
-    def __init__(self, x0: np.ndarray, time: float = 0.0): #TODO remove arguments!~?
-        super().__init__()
-        self.x_sim = x0
-        self.time = time
+    def __init__(self, x0: State, time: float = 0.0):
+        super().__init__(time=time, state=x0)
 
     @abstractmethod
     def input(self, t: float) -> np.ndarray:
@@ -32,7 +32,7 @@ class SystemSimulator(BaseSystem, ABC):
         Default dynamics call forwards to dynamicsSim unless overridden.
         """
 
-    def predict(self, time_next: float) -> "SystemSimulator":
+    def predict(self, time_next: float) -> tuple:
         """
         Simple Euler integration of x_sim forward to time_next.
         """

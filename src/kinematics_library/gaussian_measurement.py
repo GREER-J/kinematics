@@ -9,12 +9,18 @@ from src.kinematics_library.system_simulator_estimator import SystemSimulatorEst
 
 
 class MeasurementGaussianLikelihood(Measurement):
-    def __init__(self, y=None):
-        super().__init__(update_method='affine')
+    """Encapsulates the measurement function h.
+       the bridge between measurement space and statespace
+
+    Args:
+        Measurement (_type_): _description_
+    """
+    def __init__(self, time: float, y: np.ndarray, system: BaseSystem, **kwargs):
+        super().__init__(system=system, time=time, **kwargs)
         self.y = y  # The actual measurement vector
 
     @abstractmethod
-    def predict_density(self, x: np.ndarray, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> GaussianReturn:
+    def predict_density(self, x: np.ndarray, return_gradient=False, return_hessian=False) -> GaussianReturn:
         """
         Predict the distribution of y given x.
 
@@ -31,7 +37,7 @@ class MeasurementGaussianLikelihood(Measurement):
         self.y = py.simulate(m=1)  # shape (ny, 1)
         return self
 
-    def log_likelihood(self, x: np.ndarray, system: BaseSystem, return_gradient=False, return_hessian=False):
+    def log_likelihood(self, x: np.ndarray, return_gradient=False, return_hessian=False):
         """
         Computes the log-likelihood log p(y | x), along with its gradient and Hessian if requested.
 
@@ -47,7 +53,7 @@ class MeasurementGaussianLikelihood(Measurement):
             d2ldx2 (optional): Hessian of log-likelihood
         """
         if return_hessian:
-            likelihood, dhdx, d2hdx2 = self.predict_density(x, system)
+            likelihood, dhdx, d2hdx2 = self.predict_density(x)
             l, dldy, d2ldy2 = likelihood.log(self.y, return_grad=True, return_hess=True)
 
             dldx = -dhdx.T @ dldy
@@ -76,8 +82,8 @@ class MeasurementGaussianLikelihood(Measurement):
 
             return float(l), dldx, d2ldx2
 
-        elif return_gradient:
-            likelihood, dhdx = self.predict_density(x, system)
+        if return_gradient:
+            likelihood, dhdx = self.predict_density(x)
             l, dldy = likelihood.log(self.y, return_grad=True)
 
             """
@@ -101,55 +107,54 @@ class MeasurementGaussianLikelihood(Measurement):
 
         else:
 
-            likelihood = self.predict_density(x, system)  # By default this is just a Gaussian
+            likelihood = self.predict_density(x)  # By default this is just a Gaussian
             l = likelihood.log(self.y)
             return float(l)
 
-    def update(self, system):
+    def _do_update(self):
         """
         Update the system's Gaussian density with this measurement.
         Supports multiple update methods: affine, unscented, etc.
         """
         if self.need_to_simulate:
-            self.simulate(system.x_sim, system)
+            self.simulate(self.system.x_sim, self.system)
             self.need_to_simulate = False
 
         method = self.update_method.lower()
         if method in ['affine', 'unscented']:
-            nx = system.density.dim()
+            nx = self.system.density.dim()
             ny = self.y.shape[0]
 
             # Call predict_density with only what's needed
             def joint_func(x):
                 py_aug, J_aug = self.augmented_predict_density(
-                    x, system,
+                    x, self.system,
                     return_gradient=(method == 'affine'),
                     return_hessian=(method == 'unscented')
                 )
                 return py_aug, J_aug
 
             if method == 'affine':
-                pyx = system.density.affine_transform(joint_func)
+                pyx = self.system.density.affine_transform(joint_func)
 
             elif method == 'unscented':
-                pyx = system.density.unscented_transform(joint_func)
+                pyx = self.system.density.unscented_transform(joint_func)
 
             idx_x = list(range(ny, ny + nx))
             idx_y = list(range(ny))
 
-            system.density = pyx.conditional(idx_x, idx_y, self.y)
+            self.system.density = pyx.conditional(idx_x, idx_y, self.y)
 
         else:
-            return super().update(system)
+            return super().update(self.system)
 
-        return self, system
+        return self, self.system
 
-    def augmented_predict_density(self, x, system: SystemSimulatorEstimator, return_gradient=False, return_hessian=False) -> GaussianReturn:
-        if system is None:
+    def augmented_predict_density(self, x, return_gradient=False, return_hessian=False) -> GaussianReturn:
+        if self.system is None:
             raise ValueError("System must be provided to access state uncertainty.")
 
         result = self.predict_density(x=x,
-                                      system=system,
                                       return_gradient=return_gradient,
                                       return_hessian=return_hessian)
 
@@ -169,7 +174,7 @@ class MeasurementGaussianLikelihood(Measurement):
         # Construct full S_aug: (ny+nx, ny+nx)
         S_aug = np.zeros((ny + nx, ny + nx))
         S_aug[:ny, :ny] = py.sqrt_cov  # top-left block is R
-        S_aug[ny:, ny:] = system.density.sqrt_cov  # bottom-right = state uncertainty
+        S_aug[ny:, ny:] = self.system.density.sqrt_cov  # bottom-right = state uncertainty
 
         # Create dummy Jacobians
         dhdx = np.zeros((py.mu.shape[0], x.shape[0]))

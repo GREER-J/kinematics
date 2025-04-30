@@ -46,8 +46,17 @@ def identity():
     return np.eye(3)
 
 
-def assert_matrix_close(actual, expected, tol=1e-6):
-    np.testing.assert_allclose(actual, expected, rtol=tol, atol=tol)
+def assert_matrix_close(actual, expected, tol=1e-6, message=None):
+    if message is None:
+        # Use NumPy's built-in detailed assertion if no message is given
+        np.testing.assert_allclose(actual, expected, rtol=tol, atol=tol)
+    elif isinstance(message, str):
+        # Use a plain assertion with your custom message
+        assert np.allclose(actual, expected, rtol=tol, atol=tol), message
+    else:
+        raise TypeError(
+            f"Invalid type for message: expected None or str, got {type(message).__name__}"
+        )
 
 
 def test_Rz_zero_angle():
@@ -197,7 +206,11 @@ def test_rpy_inverse_rotations():
     psi = np.deg2rad(60)
     R = rpy(phi, theta, psi)
     R_inv = rpy(-phi, -theta, -psi)
-    assert_matrix_close(R @ R_inv, identity())
+    R_to_test = R @ R_inv
+
+    phi_r, theta_r, psi_r = euler_from_matrix(R_to_test)
+    message_if_fail = f"Not exactly zero, implied rotation [{np.rad2deg(phi_r)}, {np.rad2deg(theta_r)}, {np.rad2deg(psi_r)}] rpy in deg"
+    assert_matrix_close(R_to_test, identity(), message=message_if_fail)
 
 
 def test_rpy_gimbal_lock():
