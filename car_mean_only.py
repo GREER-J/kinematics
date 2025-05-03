@@ -3,6 +3,7 @@ from src.kinematics_library.system import BaseSystem
 from src.kinematics_library.state import MeanState
 from src.kinematics_library.event import BaseEvent, LogEvent, StateUpdateEvent
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 class CarState(MeanState):
@@ -72,7 +73,7 @@ class Car(BaseSystem):
         return Car(state=self.state.copy(), time=self.time)
 
 
-T_update = 1.0
+T_update = 0.5
 T_log = 2.5
 T_end = 10.0
 
@@ -83,10 +84,57 @@ x0 = CarState(np.array([[1], [2], [3], [4]]))
 car_plant = Car(x0)
 
 events: list[BaseEvent] = []
-events.extend([StateUpdateEvent(time=t) for t in update_times])
+events.extend(state_upd_events := [StateUpdateEvent(time=t) for t in update_times])
 events.extend([LogEvent(time=t) for t in log_times])
 events.sort()
 
 # Do sim simulation
 for event in events:
     _, car_plant = event.process(car_plant)
+
+# Plots
+times = np.zeros(len(update_times))
+xs = np.zeros((4, len(update_times)))
+
+for i, event in enumerate(state_upd_events):
+    xs[:, i] = event.system.state.to_vector().flatten()
+    times[i] = event.time
+
+# Plot x, y scatter plot
+X, Y, Vx, Vy = xs[0], xs[1], xs[2], xs[3]
+
+# XY Scatter Plot
+plt.figure()
+plt.scatter(X, Y)
+plt.title("XY Position Scatter")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.axis("equal")
+plt.grid(True)
+
+# State Time-Series Subplots
+plt.figure(figsize=(8, 10))
+
+plt.subplot(4, 1, 1)
+plt.plot(times, X)
+plt.ylabel("x")
+plt.grid(True)
+
+plt.subplot(4, 1, 2)
+plt.plot(times, Y)
+plt.ylabel("y")
+plt.grid(True)
+
+plt.subplot(4, 1, 3)
+plt.plot(times, Vx)
+plt.ylabel("vx")
+plt.grid(True)
+
+plt.subplot(4, 1, 4)
+plt.plot(times, Vy)
+plt.ylabel("vy")
+plt.xlabel("time [s]")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
