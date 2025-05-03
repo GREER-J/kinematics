@@ -7,7 +7,8 @@ from src.kinematics_library.guassian import Gaussian
 
 
 class SystemSimulatorEstimator(BaseSystem, ABC):
-        super.__init__()
+    def __init__(self, state, time=0):
+        super().__init__(state, time)
         self.density: Gaussian = None
         self.x_sim: np.ndarray = None
         self.run_estimator = True

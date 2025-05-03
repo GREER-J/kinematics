@@ -12,14 +12,12 @@ class DummySystem(SystemSimulatorEstimator):
 
     def dynamics(self, t, x, u):
         raise NotImplementedError("This is a dummy function")
-        return super().dynamics(t, x, u)
 
     def input(self, t):
         raise NotImplementedError("This is a dummy function")
-        return super().input(t)
 
 
-class TestMeasurement(MeasurementGaussianLikelihood):
+class DummyMeasurement(MeasurementGaussianLikelihood):
     def __init__(self, y: np.ndarray):
         super().__init__(y)
         self.H = np.array([[2.0, 3.0]])
@@ -59,7 +57,7 @@ def test_get_pyx_with_affine_transform():
     assert px.cov.shape == (2, 2), f"Expected covariance shape (2,2), got {px.cov.shape}"
 
     sys = DummySystem(density=px)
-    measurement = TestMeasurement(np.zeros((1, 1)))  # y doesn't matter in this case
+    measurement = DummyMeasurement(np.zeros((1, 1)))  # y doesn't matter in this case
 
     pyx = measurement.get_pyx(x=mux, system=sys, return_gradient=True)
     assert isinstance(pyx, Gaussian), "h function should return include Gaussian object"

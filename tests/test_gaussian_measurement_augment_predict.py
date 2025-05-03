@@ -19,8 +19,9 @@ class DummySystem(SystemSimulatorEstimator):
         return super().input(t)
 
 
-class TestMeasurement(MeasurementGaussianLikelihood):
-        super().__init__(y)
+class DummyMeasurement(MeasurementGaussianLikelihood):
+    def __init__(self, time, y, system, **kwargs):
+        super().__init__(time, y, system, **kwargs)
         self.H = np.array([[2.0, 3.0]])
         self.R = np.array([[0.5]])
 
@@ -50,7 +51,7 @@ def test_augment_simple_measurement_function():
     assert px.cov.shape == (2, 2), f"Expected covariance shape (2,2), got {px.cov.shape}"
 
     sys = DummySystem(density=px)
-    measurement = TestMeasurement(np.zeros((1, 1)))  # y doesn't matter in this case
+    measurement = DummyMeasurement(np.zeros((1, 1)))  # y doesn't matter in this case
 
     rv = measurement.augmented_predict_density(x=mux, system=sys, return_gradient=True)
     assert isinstance(rv, GaussianReturn), "h function should return a GaussianReturn object"

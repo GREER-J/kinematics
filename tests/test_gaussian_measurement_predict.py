@@ -1,5 +1,5 @@
 import numpy as np
-from tests.helpers.dummy_scenario import DummySystem, TestMeasurement
+from tests.helpers.dummy_scenario import DummySystem, DummyMeasurement
 from src.kinematics_library.gaussian_return import GaussianReturn
 from src.kinematics_library.guassian import Gaussian
 
@@ -10,7 +10,7 @@ def test_gaussian_measurement():
         [2.0]])
 
     sys = DummySystem(state=Gaussian(mux, np.eye(2)))
-    measurement = TestMeasurement(0.0, np.ndarray([1]), system=sys)
+    measurement = DummyMeasurement(0.0, np.ndarray([1]), system=sys)
 
     rv = measurement.predict_density(x=mux, system=None, return_gradient=True)
     assert isinstance(rv, GaussianReturn), "h function should return a GaussianReturn object"

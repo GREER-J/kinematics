@@ -12,14 +12,12 @@ class DummySystem(SystemSimulatorEstimator):
 
     def dynamics(self, t, x, u):
         raise NotImplementedError("This is a dummy function")
-        return super().dynamics(t, x, u)
 
     def input(self, t):
         raise NotImplementedError("This is a dummy function")
-        return super().input(t)
 
 
-class TestMeasurement(MeasurementGaussianLikelihood):
+class DummyMeasurement(MeasurementGaussianLikelihood):
     def __init__(self, time, y, system, **kwargs):
         super().__init__(time, y, system, **kwargs)
         self.H = np.array([[2.0, 3.0]])
