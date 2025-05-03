@@ -1,5 +1,5 @@
 import numpy as np
-from src.kinematics_library.guassian import Gaussian  # adjust if needed
+from src.kinematics_library.gaussian import Gaussian  # adjust if needed
 from numpy.testing import assert_allclose
 
 

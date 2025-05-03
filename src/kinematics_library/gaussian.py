@@ -8,6 +8,11 @@ from enum import Enum
 
 
 class AffineMode(Enum):
+    """Mode to complete transform with
+
+    Args:
+        Enum (String): Transform method
+    """
     MOMENT = 'moment'
     SQRT = 'sqrt'
 
@@ -52,11 +57,29 @@ class Gaussian:
 
     @classmethod
     def from_moment(cls, mu, P):
+        """Create a Gaussian object from mean and covariance.
+
+        Args:
+            mu (np.ndarray): Mean of the distribution.
+            P (np.ndarray): Covariance of the distribution.
+
+        Returns:
+            Gaussian: Gaussian object capturing the distribution.
+        """
         S = np.linalg.cholesky(P).T
         return cls(mu, S)
 
     @classmethod
-    def from_samples(cls, X: np.ndarray) -> "Gaussian":
+    def from_samples(cls, X: np.ndarray) -> Gaussian:
+        """
+        Construct a Gaussian object from samples from a distribution.
+
+        Args:
+            X (np.ndarray): samples from the target distribution
+
+        Returns:
+            Gaussian: Gaussian object with mean `mu` and sqrt covariance `S`
+        """
         mu = np.mean(X, axis=1, keepdims=True)  # (n, 1)
         Xc = X - mu                             # center the samples
         m = X.shape[1]

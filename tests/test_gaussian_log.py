@@ -1,6 +1,6 @@
 import numpy as np
 from numdifftools import Gradient, Hessian
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 
 
 def test_log_pdf_value():

@@ -3,7 +3,7 @@ from typing import Tuple
 import copy
 import numpy as np
 from src.kinematics_library.system import BaseSystem
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 
 
 class SystemSimulatorEstimator(BaseSystem, ABC):

@@ -1,5 +1,5 @@
 import numpy as np
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 
 
 def test_gaussian_from_samples_mean():

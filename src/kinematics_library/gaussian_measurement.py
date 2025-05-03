@@ -1,9 +1,8 @@
 from abc import abstractmethod
-from typing import Tuple
 import numpy as np
 from src.kinematics_library.measurement import Measurement
 from src.kinematics_library.system import BaseSystem
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 from src.kinematics_library.gaussian_return import GaussianReturn
 from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 

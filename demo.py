@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
 
 # ------------------------

@@ -1,4 +1,4 @@
-from src.kinematics_library.guassian import Gaussian, GaussianReturn
+from src.kinematics_library.gaussian import Gaussian, GaussianReturn
 from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
 from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 from src.kinematics_library.state import GaussianState

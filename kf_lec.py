@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 
 
 class OscillatingMeasurement(MeasurementGaussianLikelihood):

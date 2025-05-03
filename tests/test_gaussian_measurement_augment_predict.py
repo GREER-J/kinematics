@@ -2,7 +2,7 @@ import numpy as np
 from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
 from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
 from src.kinematics_library.gaussian_return import GaussianReturn
-from src.kinematics_library.guassian import Gaussian
+from src.kinematics_library.gaussian import Gaussian
 
 
 class DummySystem(SystemSimulatorEstimator):
