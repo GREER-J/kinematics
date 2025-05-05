@@ -1,6 +1,6 @@
 import numpy as np
 import sympy as sp
-from src.kinematics_library.skew import skew_np, skew_sp
+from src.dynamics_library.skew import skew_np, skew_sp
 
 
 def test_skew_np():

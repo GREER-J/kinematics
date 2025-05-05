@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.kinematics_library.rotation_expm import Rz, Ry, Rx, rpy
+from src.dynamics_library.rotation_expm import Rz, Ry, Rx, rpy
 from tests.test_rotation_matrix import assert_valid_rotation_matrix
 
 

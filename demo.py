@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from src.kinematics_library.gaussian import Gaussian
-from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
+from src.dynamics_library.gaussian import Gaussian
+from src.dynamics_library.gaussian_measurement import MeasurementGaussianLikelihood
 
 # ------------------------
 # 0. Scenario Configuration

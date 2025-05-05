@@ -1,9 +1,9 @@
 import pytest
 import numpy as np
 from scipy.linalg import expm
-from src.kinematics_library.base_vec import e1, e2, e3
-from src.kinematics_library.skew import skew_np
-from src.kinematics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig, rpy, euler_from_matrix
+from src.dynamics_library.base_vec import e1, e2, e3
+from src.dynamics_library.skew import skew_np
+from src.dynamics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig, rpy, euler_from_matrix
 from tests.test_rotation_matrix import assert_valid_rotation_matrix
 
 TOL = 1e-10  # Very tight tolerance

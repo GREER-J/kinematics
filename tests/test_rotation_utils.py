@@ -1,5 +1,5 @@
 import numpy as np
-from src.kinematics_library.rotation_utils import get_e1_axis_from_R, get_e2_axis_from_R, get_e3_axis_from_R
+from src.dynamics_library.rotation_utils import get_e1_axis_from_R, get_e2_axis_from_R, get_e3_axis_from_R
 TOL = 1e-10
 
 

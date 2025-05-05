@@ -1,7 +1,7 @@
 import numpy as np
 from tests.helpers.dummy_scenario import DummySystem, DummyMeasurement
-from src.kinematics_library.gaussian_return import GaussianReturn
-from src.kinematics_library.gaussian import Gaussian
+from src.dynamics_library.gaussian_return import GaussianReturn
+from src.dynamics_library.gaussian import Gaussian
 
 
 def test_gaussian_measurement():

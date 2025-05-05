@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_allclose
-from src.kinematics_library.homogeneous_base import rotx_se3, roty_se3, rotz_se3, tranx_se3, trany_se3, tranz_se3
-from src.kinematics_library.homogeneous import rotx, roty, rotz, transx, transy, transz
+from src.dynamics_library.homogeneous_base import rotx_se3, roty_se3, rotz_se3, tranx_se3, trany_se3, tranz_se3
+from src.dynamics_library.homogeneous import rotx, roty, rotz, transx, transy, transz
 
 TOL = 1e-10
 

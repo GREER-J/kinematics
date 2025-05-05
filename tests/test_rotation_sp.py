@@ -1,8 +1,8 @@
 import sympy as sp
 import numpy as np
 from numpy.testing import assert_allclose
-from src.kinematics_library.rotation_sp import Rx_sp, Ry_sp, Rz_sp
-from src.kinematics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig
+from src.dynamics_library.rotation_sp import Rx_sp, Ry_sp, Rz_sp
+from src.dynamics_library.rotation_trig import Rx_trig, Ry_trig, Rz_trig
 from tests.test_rotation_matrix import assert_valid_rotation_matrix
 
 TOL = 1e-10  # Very tight tolerance

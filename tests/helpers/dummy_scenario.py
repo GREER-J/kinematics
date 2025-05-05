@@ -1,7 +1,7 @@
-from src.kinematics_library.gaussian import Gaussian, GaussianReturn
-from src.kinematics_library.gaussian_measurement import MeasurementGaussianLikelihood
-from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
-from src.kinematics_library.state import GaussianState
+from src.dynamics_library.gaussian import Gaussian, GaussianReturn
+from src.dynamics_library.gaussian_measurement import MeasurementGaussianLikelihood
+from src.dynamics_library.system_simulator_estimator import SystemSimulatorEstimator
+from src.dynamics_library.state import GaussianState
 import numpy as np
 
 

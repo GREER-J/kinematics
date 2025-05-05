@@ -1,8 +1,8 @@
 import sympy as sp
 import numpy as np
 from numpy.testing import assert_allclose
-from src.kinematics_library.homogeneous_sp import rotx_sp, roty_sp, rotz_sp, transx_sp, transy_sp, transz_sp
-from src.kinematics_library.homogeneous import rotx, roty, rotz, transx, transy, transz
+from src.dynamics_library.homogeneous_sp import rotx_sp, roty_sp, rotz_sp, transx_sp, transy_sp, transz_sp
+from src.dynamics_library.homogeneous import rotx, roty, rotz, transx, transy, transz
 
 TOL = 1e-10
 

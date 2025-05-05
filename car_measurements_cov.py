@@ -1,46 +1,15 @@
 from __future__ import annotations
 from src.dynamics_library.system import BaseSystem
-from src.dynamics_library.state import MeanState
+from src.dynamics_library.state import GaussianState
 from src.dynamics_library.event import BaseEvent, LogEvent, StateUpdateEvent
+from src.dynamics_library.gaussian import Gaussian
 import numpy as np
 from matplotlib import pyplot as plt
 
 
-class CarState(MeanState):
-    def __init__(self, x: np.ndarray):
-        assert x.shape == (4, 1), "Expected a 4×1 column vector"
-        super().__init__(x)
-
-    @classmethod
-    def from_components(cls, x: float, y: float, vx: float, vy: float) -> CarState:
-        vec = np.array([[x], [y], [vx], [vy]])
-        return cls(vec)
-
-    def __repr__(self):
-        return f"x = [{self.x_pos}, {self.y_pos}, {self.vx}, {self.vy}]"
-
-    @classmethod
-    def from_array(cls, x: np.ndarray) -> CarState:
-        return CarState(x)
-
-    @property
-    def x_pos(self):
-        return self.x[0, 0]
-
-    @property
-    def y_pos(self):
-        return self.x[1, 0]
-
-    @property
-    def vx(self):
-        return self.x[2, 0]
-
-    @property
-    def vy(self):
-        return self.x[3, 0]
-
-    def copy(self):
-        return CarState(self.x.copy())
+class CarState(GaussianState):
+    def __init__(self, x: np.ndarray, P: np.ndarray):
+        super().__init__(distribution=Gaussian.from_moment(mu=x, P=P))
 
 
 class Car(BaseSystem):
@@ -65,7 +34,8 @@ class Car(BaseSystem):
 
     def predict(self, time) -> Car:
         system_next = self.copy()
-        x_next = self.dynamics(time, self.state.to_vector(), None)
+        mu, cov = self.state.to_vector()
+        x_next = self.dynamics(time, mu, None)
         system_next.state = CarState.from_array(x_next)
         return system_next
 
@@ -80,7 +50,7 @@ T_end = 10.0
 update_times = np.arange(0, T_end + 1e-6, T_update)
 log_times = np.arange(0, T_end + 1e-6, T_log)
 
-x0 = CarState(np.array([[1], [2], [3], [4]]))
+x0 = CarState(np.array([[1], [2], [3], [4]]), 10*np.eye(4))
 car_plant = Car(x0)
 
 events: list[BaseEvent] = []

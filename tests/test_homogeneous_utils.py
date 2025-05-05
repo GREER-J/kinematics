@@ -1,5 +1,5 @@
 import numpy as np
-from src.kinematics_library.homogeneous_utils import get_R_from_A, get_r_from_A, get_r_and_R_from_A, get_e1_axis_from_A, get_e2_axis_from_A, get_e3_axis_from_A
+from src.dynamics_library.homogeneous_utils import get_R_from_A, get_r_from_A, get_r_and_R_from_A, get_e1_axis_from_A, get_e2_axis_from_A, get_e3_axis_from_A
 from tests.test_rotation_matrix import assert_valid_rotation_matrix
 TOL = 1e-10
 

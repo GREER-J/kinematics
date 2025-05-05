@@ -1,6 +1,6 @@
 import numpy as np
-from src.kinematics_library.gaussian import Gaussian
-from src.kinematics_library.gaussian_return import GaussianReturn
+from src.dynamics_library.gaussian import Gaussian
+from src.dynamics_library.gaussian_return import GaussianReturn
 # Assuming Gaussian and GaussianReturn already imported
 
 
