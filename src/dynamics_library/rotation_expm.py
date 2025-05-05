@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import expm
-from src.kinematics_library.base_vec import e1, e2, e3
-from src.kinematics_library.skew import skew_np
+from src.dynamics_library.base_vec import e1, e2, e3
+from src.dynamics_library.skew import skew_np
 
 
 def Rz(psi_rad: float) -> np.ndarray:

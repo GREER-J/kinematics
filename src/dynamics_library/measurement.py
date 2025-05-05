@@ -1,6 +1,6 @@
 from abc import abstractmethod
-from src.kinematics_library.event import BaseEvent
-from src.kinematics_library.system import BaseSystem
+from src.dynamics_library.event import BaseEvent
+from src.dynamics_library.system import BaseSystem
 
 
 class Measurement(BaseEvent):

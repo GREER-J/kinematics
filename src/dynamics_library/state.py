@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import numpy as np
-from src.kinematics_library.gaussian import Gaussian
+from src.dynamics_library.gaussian import Gaussian
 
 
 class State(ABC):

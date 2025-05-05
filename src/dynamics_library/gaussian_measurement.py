@@ -1,10 +1,10 @@
 from abc import abstractmethod
 import numpy as np
-from src.kinematics_library.measurement import Measurement
-from src.kinematics_library.system import BaseSystem
-from src.kinematics_library.gaussian import Gaussian
-from src.kinematics_library.gaussian_return import GaussianReturn
-from src.kinematics_library.system_simulator_estimator import SystemSimulatorEstimator
+from src.dynamics_library.measurement import Measurement
+from src.dynamics_library.system import BaseSystem
+from src.dynamics_library.gaussian import Gaussian
+from src.dynamics_library.gaussian_return import GaussianReturn
+from src.dynamics_library.system_simulator_estimator import SystemSimulatorEstimator
 
 
 class MeasurementGaussianLikelihood(Measurement):

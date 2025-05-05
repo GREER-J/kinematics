@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple
-from src.kinematics_library.state import State
+from src.dynamics_library.state import State
 
 
 class BaseSystem(ABC):

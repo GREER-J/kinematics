@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import expm
-from src.kinematics_library.skew import skew_np
+from src.dynamics_library.skew import skew_np
 
 
 # def hat_se3(xi: np.ndarray) -> np.ndarray:

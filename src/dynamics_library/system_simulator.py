@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 import copy
 import numpy as np
-from src.kinematics_library.system import BaseSystem
-from src.kinematics_library.state import State
+from src.dynamics_library.system import BaseSystem
+from src.dynamics_library.state import State
 
 
 class SystemSimulator(BaseSystem, ABC):

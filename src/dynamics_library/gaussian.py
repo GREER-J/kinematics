@@ -2,8 +2,8 @@ from __future__ import annotations
 from typing import Callable, Union, Optional
 import numpy as np
 from scipy.stats import chi2, norm
-from src.kinematics_library.gaussian_measurement_function import MeasurementFunctionProtocol
-from src.kinematics_library.gaussian_return import GaussianReturn
+from src.dynamics_library.gaussian_measurement_function import MeasurementFunctionProtocol
+from src.dynamics_library.gaussian_return import GaussianReturn
 from enum import Enum
 
 
