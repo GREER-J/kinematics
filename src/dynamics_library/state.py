@@ -30,8 +30,8 @@ class MeanState(State):
 class GaussianState(State):
     distribution: Gaussian  # your existing class
 
-    def get_mean(self) -> np.ndarray:
-        return self.distribution.mu
+    def to_vector(self) -> tuple[np.ndarray, np.ndarray]:
+        return self.distribution.mu.copy(), self.distribution.cov.copy()
 
     def copy(self) -> Gaussian:
         return Gaussian(self.distribution.mu.copy(), self.distribution.sqrt_cov.copy())
