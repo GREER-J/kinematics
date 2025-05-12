@@ -65,7 +65,8 @@ class Car(BaseSystem):
 
     def predict(self, time) -> Car:
         system_next = self.copy()
-        x_next = self.dynamics(time, self.state.to_vector(), None)
+        x_next = self.dynamics(time, self.state.to_vector(), None)  # State does transformation
+        # x_next = self.state.affine_transform(self.dynamics)
         system_next.state = CarState.from_array(x_next)
         return system_next
 

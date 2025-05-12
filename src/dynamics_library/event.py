@@ -7,12 +7,35 @@ from src.dynamics_library.system import BaseSystem
 
 @dataclass
 class BaseEvent(ABC):
+    """
+    Base class for time-ordered events in a simulation.
+
+    Attributes:
+        time (float): 
+            The time at which the event occurs.
+        save_state (bool, optional): 
+            Whether to save the system state after the event. Defaults to True.
+        verbosity (int, optional): 
+            Controls logging output. 0 = silent, 1 = show basic progress. Defaults to 1.
+        system (Optional[BaseSystem], optional): 
+            A snapshot of the system after processing this event. Only saved if `save_state` is True.
+    """
     time: float
     save_state: bool = True
     verbosity: int = 1
     system: Optional[BaseSystem] = None
 
     def process(self, system: BaseSystem) -> Tuple[BaseEvent, BaseSystem]:
+        """
+        Process the event by advancing the system to the event time, applying the event-specific update,
+        and optionally saving the resulting system state.
+
+        Args:
+            system (BaseSystem): The current system state.
+
+        Returns:
+            Tuple[BaseEvent, BaseSystem]: The updated event and system.
+        """
         if self.verbosity > 0:
             print(f"[t={self.time:07.3f}s] {self.get_process_string()}", end="")
 
@@ -33,16 +56,43 @@ class BaseEvent(ABC):
 
     @abstractmethod
     def update(self, system: BaseSystem) -> None:
+        """
+        Abstract method that defines event-specific behavior.
+
+        Args:
+            system (BaseSystem): The system to update.
+        """
         pass
 
     @staticmethod
     def get_process_string() -> str:
+        """
+        Returns a string used for logging during processing.
+
+        Returns:
+            str: The logging message.
+        """
         return "Processing event:\n"
 
     def __repr__(self) -> str:
+        """
+        String representation of the event.
+
+        Returns:
+            str: A compact string showing the event type and time.
+        """
         return f"<{self.__class__.__name__} at t={self.time:.3f}>"
 
     def __lt__(self, other: "BaseEvent") -> bool:
+        """
+        Compare events by time for sorting.
+
+        Args:
+            other (BaseEvent): Another event.
+
+        Returns:
+            bool: True if this event occurs before the other.
+        """
         return self.time < other.time
 
 

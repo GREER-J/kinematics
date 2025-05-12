@@ -11,6 +11,8 @@ class CarState(GaussianState):
     def __init__(self, x: np.ndarray, P: np.ndarray):
         super().__init__(distribution=Gaussian.from_moment(mu=x, P=P))
 
+    
+
 
 class Car(BaseSystem):
     def __init__(self, state: CarState, time: float = 0.0):
@@ -35,7 +37,7 @@ class Car(BaseSystem):
     def predict(self, time) -> Car:
         system_next = self.copy()
         mu, cov = self.state.to_vector()
-        x_next = self.dynamics(time, mu, None)
+        x_next = self.dynamics(time, mu, None)  # State does transormation
         system_next.state = CarState.from_array(x_next)
         return system_next
 
