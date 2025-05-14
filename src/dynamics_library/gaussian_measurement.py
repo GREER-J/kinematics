@@ -19,7 +19,7 @@ class MeasurementGaussianLikelihood(Measurement):
         self.y = y  # The actual measurement vector
 
     @abstractmethod
-    def predict_density(self, x: np.ndarray, return_gradient=False, return_hessian=False) -> GaussianReturn:
+    def predict_density(self, x: np.ndarray, return_grad=False, return_hessian=False) -> GaussianReturn:
         """
         Predict the distribution of y given x.
 
@@ -120,7 +120,7 @@ class MeasurementGaussianLikelihood(Measurement):
             self.need_to_simulate = False
 
         method = self.update_method.lower()
-        if method in ['affine', 'unscented']:
+        if method in ['affine', 'unscented']:  # TODO make a enum somehow
             nx = self.system.density.dim()
             ny = self.y.shape[0]
 
@@ -128,7 +128,7 @@ class MeasurementGaussianLikelihood(Measurement):
             def joint_func(x):
                 py_aug, J_aug = self.augmented_predict_density(
                     x, self.system,
-                    return_gradient=(method == 'affine'),
+                    return_grad=(method == 'affine'),
                     return_hessian=(method == 'unscented')
                 )
                 return py_aug, J_aug
@@ -149,18 +149,18 @@ class MeasurementGaussianLikelihood(Measurement):
 
         return self, self.system
 
-    def augmented_predict_density(self, x, return_gradient=False, return_hessian=False) -> GaussianReturn:
+    def augmented_predict_density(self, x, return_grad=False, return_hessian=False) -> GaussianReturn:
         if self.system is None:
             raise ValueError("System must be provided to access state uncertainty.")
 
         result = self.predict_density(x=x,
-                                      return_gradient=return_gradient,
+                                      return_grad=return_grad,
                                       return_hessian=return_hessian)
 
         if not result.has_gaussian:
             raise ValueError("Result from h(x) should include a Gaussian")
 
-        if return_gradient and not result.has_grad:
+        if return_grad and not result.has_grad:
             raise ValueError("Result from h(x) does not include dhdx")
 
         if return_hessian and not result.has_hesh:

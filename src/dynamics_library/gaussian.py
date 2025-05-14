@@ -190,7 +190,7 @@ class Gaussian:
         self,
         h: MeasurementFunctionProtocol,
         noise: Optional[Gaussian] = None,
-        mode=AffineMode.SQRT
+        mode=AffineMode.MOMENT  # TODO This should go back to the default!
     ) -> Gaussian:
         """
         Apply an affine (linearized) transformation to the Gaussian using Jacobian-based uncertainty propagation.
@@ -240,7 +240,7 @@ class Gaussian:
         assert Px.shape[0] == J.shape[1], "Incompatible dimensions for affine transform"
         P_aug = J @ Px @ J.T + R
 
-        return P_aug
+        return P_aug #!TODO Supposed to return a Gaussian but doesn't?!
 
     def compute_affine_transform_sqrt(self, noise, S, y_part, J) -> Gaussian:
         if y_part.ndim == 1:

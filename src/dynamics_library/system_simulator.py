@@ -43,5 +43,5 @@ class SystemSimulator(BaseSystem, ABC):
         self.time = time_next
         return self
 
-    def copy(self) -> "SystemSimulator":
+    def copy(self) -> SystemSimulator:
         return copy.deepcopy(self)
