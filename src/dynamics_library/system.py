@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple
+import numpy as np
 from src.dynamics_library.state import State
 
 
@@ -16,7 +17,7 @@ class BaseSystem(ABC):
         """
 
     @abstractmethod
-    def dynamics(self, t: float, x, u) -> Tuple:  # TODO named tupple / structure
+    def dynamics(self, t: float, x: np.ndarray, u: np.ndarray, return_grad: bool = False, return_hess: bool = False) -> Tuple:  # TODO named tupple / structure
         """
         Compute system dynamics f(t, x, u), and optionally return Jacobians Jx, Ju.
         """

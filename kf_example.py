@@ -1,20 +1,19 @@
 from __future__ import annotations
+import pickle
+import copy
+from functools import partial
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-import pickle
-import copy
 from src.dynamics_library.system import BaseSystem
 from src.dynamics_library.gaussian_return import GaussianReturn
-from functools import partial
 from src.dynamics_library.gaussian import Gaussian
 from src.dynamics_library.kalman_filter_measurement import ClassicKalmanMeasurement
 
 
 class OscillatorySystem(BaseSystem):
     def __init__(self, state: Gaussian, time=0):
-        self.time = time
-        self.state = state
+        super().__init__(state=state, time=time)
         self.Q = np.diag([0.1, 0, 0.1])
 
     @property
@@ -49,7 +48,7 @@ class OscillatorySystem(BaseSystem):
     def input(self, t: float) -> np.ndarray:
         return np.zeros((0, 1))  # No control input
 
-    def dynamics(self, t: float, x: np.ndarray, u: np.ndarray, return_grad: bool) -> GaussianReturn:
+    def dynamics(self, t: float, x: np.ndarray, u: np.ndarray, return_grad: bool = False, return_hess: bool = False) -> GaussianReturn:
         magnitude = self.Ad @ x
         rv = GaussianReturn(magnitude=magnitude)
 

@@ -33,21 +33,21 @@ class State(ABC):
     def to_vector(self) -> np.ndarray:
         ...
 
-    @abstractmethod
-    def transform(self, f: StandardFunctionProtocol, method: SupportedTransformMode) -> State:
-        ...
+    # @abstractmethod
+    # def transform(self, f: StandardFunctionProtocol, method: SupportedTransformMode) -> State:
+    #     ...
 
-    @abstractmethod
-    def affine_transform(self, H, mu_x):
-        ...
+    # @abstractmethod
+    # def affine_transform(self, H, mu_x):
+    #     ...
 
-    @abstractmethod
-    def unscented_transform(self, H, mu_x):
-        ...
+    # @abstractmethod
+    # def unscented_transform(self, H, mu_x):
+    #     ...
 
-    @abstractmethod
-    def particle_transform(self, f, samples, N):
-        ...
+    # @abstractmethod
+    # def particle_transform(self, f, samples, N):
+    #     ...
 
 
 @dataclass
