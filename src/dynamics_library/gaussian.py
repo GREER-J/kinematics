@@ -5,6 +5,7 @@ from scipy.stats import chi2, norm
 from src.dynamics_library.gaussian_measurement_function import MeasurementFunctionProtocol
 from src.dynamics_library.gaussian_return import GaussianReturn
 from enum import Enum
+import warnings
 
 
 class AffineMode(Enum):
@@ -66,7 +67,16 @@ class Gaussian:
         Returns:
             Gaussian: Gaussian object capturing the distribution.
         """
-        S = np.linalg.cholesky(P).T
+        try:
+            S = np.linalg.cholesky(P).T
+        except np.linalg.LinAlgError:
+            warnings.warn("Cholesky failed; falling back to EVD sqrt.")
+            eigvals, eigvecs = np.linalg.eigh(P)
+            D_sqrt = np.diag(np.sqrt(np.clip(eigvals, 1e-12, None)))
+            S = eigvecs @ D_sqrt
+
+        assert np.allclose(S @ S.T, P, atol=1e-10), "Can't recover P from S"
+
         return cls(mu, S)
 
     @classmethod
@@ -88,7 +98,7 @@ class Gaussian:
         return cls(mu, S)
 
     @classmethod
-    def from_sqrt_moment(cls, mu: np.ndarray, S: np.ndarray) -> "Gaussian":
+    def from_sqrt_moment(cls, mu: np.ndarray, S: np.ndarray) -> Gaussian:
         """
         Construct a Gaussian object from a mean vector and square-root covariance matrix.
 

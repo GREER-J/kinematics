@@ -11,8 +11,6 @@ class CarState(GaussianState):
     def __init__(self, x: np.ndarray, P: np.ndarray):
         super().__init__(distribution=Gaussian.from_moment(mu=x, P=P))
 
-    
-
 
 class Car(BaseSystem):
     def __init__(self, state: CarState, time: float = 0.0):

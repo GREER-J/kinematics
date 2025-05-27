@@ -122,8 +122,6 @@ Pp = 5 * np.eye(3)                  # Initial covariance
 
 sys = OscillatorySystem(Gaussian.from_moment(xhp, Pp))
 
-print("mu0")
-print(xhp)
 
 x = Gaussian.from_moment(xhp, Pp)
 
