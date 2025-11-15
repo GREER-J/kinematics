@@ -1,8 +1,13 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "kinematics"
+name = "dynamics_library"
 version = "0.1.0"
-dependencies = []
+
+dependencies = [
+    "numpy",
+    "scipy",
+    "sympy",
+    "numdifftools"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
